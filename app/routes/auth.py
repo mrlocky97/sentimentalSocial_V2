@@ -14,7 +14,6 @@ async def register(
 ):
     try:
         user: UserDB = await auth_service.create_user(user_data)
-        breakpoint()
         return AuthService.dtoUserResponse(user)
     except Exception as e:
         raise HTTPException(

@@ -1,9 +1,9 @@
 from passlib.context import CryptContext
 from pymongo.database import Database
 from fastapi import HTTPException
-from app.models.user import UserDB, UserCreate, UserResponse
+from app.models.user import UserDB, UserCreate, UserResponse, UserBase
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], bcrypt__rounds=12, deprecated="auto")
 
 class AuthService:
     # Constructor
@@ -42,15 +42,12 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Invalid credentials")
         return UserDB(**user)
     
+    @staticmethod
     def dtoUserResponse(user: UserDB) -> UserResponse:
-        test = UserResponse(
-            email = user.email,
-            is_active = user.is_active
-        )
-        print("IMPORTANT -> ", test)
-        print("IMPORTANT user -> ", user)
-        breakpoint()
         return UserResponse(
-            email = user.email,
-            is_active = user.is_active
+            message="User created successfully", 
+            user=UserBase(
+                username=user.username,
+                email=user.email
+            )
         )
