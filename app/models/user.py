@@ -39,6 +39,6 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
 
-class UserResponse(UserBase):
-    is_active: bool
-    email_verified: bool
+class UserResponse(BaseModel):
+    message: str
+    user: UserBase
