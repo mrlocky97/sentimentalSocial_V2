@@ -13,8 +13,10 @@ async def connect_db():
     return client.get_database(settings.MONGODB_NAME)
 
 async def close_db():
+    global client
     if client:
-        await client.close()
+        client.close()
+        client = None   
 
 def get_db():
     return client.get_database(settings.MONGODB_NAME) if client else None

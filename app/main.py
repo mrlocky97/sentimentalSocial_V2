@@ -19,8 +19,6 @@ async def startup_db():
         document_models=[UserDB]
     )
     
-    # Crear índices (usando Motor directamente)
-    # await db.users.create_index("email", unique=True)
     print("✅ Base de datos inicializada")
 
 @app.on_event("shutdown")
