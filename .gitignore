@@ -1,1 +1,4 @@
 .env
+.vscode/settings.json
+.gitignore
+app/core/__pycache__/config.cpython-313.pyc
