@@ -15,7 +15,7 @@ async def register(
     try:
         user: UserDB = await auth_service.create_user(user_data)
         breakpoint()
-        return {"message": "User created successfully", "user": AuthService.dtoUserResponse(user)}
+        return AuthService.dtoUserResponse(user)
     except Exception as e:
         raise HTTPException(
             status_code=400,

@@ -40,5 +40,5 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
 
 class UserResponse(UserBase):
-    is_active: bool
-    email_verified: bool
+    message: str
+    user: UserBase

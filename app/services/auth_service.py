@@ -47,7 +47,8 @@ class AuthService:
             email = user.email,
             is_active = user.is_active
         )
-        print(test)
+        print("IMPORTANT -> ", test)
+        print("IMPORTANT user -> ", user)
         breakpoint()
         return UserResponse(
             email = user.email,
