@@ -1,4 +1,29 @@
+# Archivos de entorno
 .env
+
+# Configuración específica de IDEs
 .vscode/settings.json
-.gitignore
-app/core/__pycache__/config.cpython-313.pyc
+.vscode/
+.idea/
+
+# Archivos generados por Python
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de distribución y construcción
+build/
+dist/
+*.egg-info/
+setup.py  # Si no necesitas incluir el script de instalación en el repositorio
+
+# Entornos virtuales de Python
+venv/
+env/
+
+# Otros archivos temporales o específicos del sistema operativo
+*.log
+*.bak
+*.tmp
+Thumbs.db
+.DS_Store

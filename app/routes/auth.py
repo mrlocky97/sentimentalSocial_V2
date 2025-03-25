@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from app.models.user import UserCreate, UserResponse
+from app.core.dependencies import get_auth_service
+from app.models.user import UserCreate, UserDB, UserResponse
 from app.services.auth_service import AuthService
-from app.database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -10,11 +10,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 async def register(
     user_data: UserCreate,
-    auth_service: AuthService = Depends(get_db) # AuthService object
+    auth_service: AuthService = Depends(get_auth_service) # AuthService object
 ):
     try:
-        user = await auth_service.create_user(user_data)
-        return {"message": "User created successfully", "user": user}
+        user: UserDB = await auth_service.create_user(user_data)
+        breakpoint()
+        return {"message": "User created successfully", "user": AuthService.dtoUserResponse(user)}
     except Exception as e:
         raise HTTPException(
             status_code=400,
@@ -25,7 +26,7 @@ async def register(
 @router.post("/login")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    auth_service: AuthService = Depends(lambda: AuthService(get_db())) # AuthService object
+    auth_service: AuthService = Depends(lambda: AuthService(get_auth_service)) # AuthService object
 ):
     try:
         user = await auth_service.authenticate_user(form_data.username, form_data.password)

@@ -1,12 +1,10 @@
 from passlib.context import CryptContext
-from app.models.user import UserDB, UserCreate
 from pymongo.database import Database
 from fastapi import HTTPException
-from app.database import get_db
+from app.models.user import UserDB, UserCreate, UserResponse
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# AuthService class
 class AuthService:
     # Constructor
     def __init__(self, db: Database): # Database object
@@ -27,7 +25,7 @@ class AuthService:
             raise HTTPException(status_code=400, detail="User already registered")
         
         # crea un diccionario con los datos del usuario
-        user_dict = user_data.dict(exclude={"password"})
+        user_dict = user_data.model_dump(exclude={"password"})
         # hashea la contraseña
         user_dict["password_hash"] = self.hash_password(user_data.password)
         
@@ -43,3 +41,15 @@ class AuthService:
         if not self.verify_password(password, user.password_hash): # si la contraseña no coincide
             raise HTTPException(status_code=401, detail="Invalid credentials")
         return UserDB(**user)
+    
+    def dtoUserResponse(user: UserDB) -> UserResponse:
+        test = UserResponse(
+            email = user.email,
+            is_active = user.is_active
+        )
+        print(test)
+        breakpoint()
+        return UserResponse(
+            email = user.email,
+            is_active = user.is_active
+        )
