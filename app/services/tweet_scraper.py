@@ -8,6 +8,32 @@ from twikit import Client, TooManyRequests
 MINIMUM_TWEETS = 500  # Valor por defecto, pero se puede parametrizar
 
 """
+Obtiene un cliente autenticado.
+Intenta cargar cookies previamente guardadas y valida la sesión.
+Si falla la validación, realiza login y guarda las nuevas cookies.
+"""
+async def get_authenticated_client() -> Client:
+    client = Client(language='en-US')
+    username:str = os.getenv('USERNAME')
+    email:str = os.getenv('EMAIL')
+    password:str = os.getenv('PASSWORD')
+
+    try:
+        client.load_cookies('cookies.json')
+        # Realiza una petición de prueba para verificar que las cookies son válidas.
+        # Usamos un query sencillo para evitar efectos secundarios.
+        test_tweets = await client.search_tweet("test", product='Latest', count=1)
+        # Si se llega aquí, se asume que la sesión es válida.
+        print(f'{datetime.now()} - Cookies válidas, sesión activa.')
+    except Exception as e:
+        print(f'{datetime.now()} - Cookies no válidas o error en validación: {e}')
+        # Se realiza el login y se guardan las nuevas cookies
+        await client.login(auth_info_1=username, auth_info_2=email, password=password)
+        client.save_cookies('cookies.json')
+        print(f'{datetime.now()} - Se ha realizado el login y se han guardado las nuevas cookies.')
+    return client
+
+"""
 Función asíncrona para obtener tweets.  
 Si 'tweets' es None, se realiza la búsqueda inicial,  
 en caso contrario, se espera un tiempo aleatorio y se obtiene el siguiente lote.
@@ -38,16 +64,8 @@ async def scrape_tweets(query: str, min_tweets: int = MINIMUM_TWEETS):
     # Se arma la query incluyendo filtros de idioma y fechas
     search_query = f'{query} lang:en until:{end_date} since:{start_date}'
 
-    username:str = os.getenv('USERNAME')
-    email:str = os.getenv('EMAIL')
-    password:str = os.getenv('PASSWORD')
-
-    client = Client(language='en-US')
-    try:
-        client.load_cookies('cookies.json')
-    except FileNotFoundError:
-        await client.login(auth_info_1=username, auth_info_2=email, password=password)
-        client.save_cookies('cookies.json')
+    # Obtener el cliente autenticado, evitando logins innecesarios
+    client = await get_authenticated_client()
 
     tweet_count = 0
     tweets_iterator = None
