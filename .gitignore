@@ -1,5 +1,5 @@
 # === Archivos de entorno ===
-.env                         # Variables de entorno (configuración sensible)
+.env                        
 
 # === Configuración específica de IDEs ===
 .vscode/
@@ -9,15 +9,15 @@
 **/__pycache__/
 *.py[cod]
 *$py.class
-.pytest_cache/               # Cache generada por pytest
-.mypy_cache/                 # Cache generada por mypy
-*.pyo                        # Archivos de optimización de Python
+.pytest_cache/               
+.mypy_cache/                 
+*.pyo                        
 
 # === Archivos de distribución y construcción ===
 build/
 dist/
 *.egg-info/
-setup.py                     # Eliminar comentario si forma parte activa del proyecto
+setup.py                     
 
 # === Entornos virtuales de Python ===
 venv/
@@ -26,20 +26,20 @@ env/
 env.bak/
 
 # === Otros archivos específicos del sistema ===
-*.log                        # Cualquier archivo de logs
-*.bak                        # Archivos de copias de seguridad
-*.tmp                        # Archivos temporales
-Thumbs.db                    # Generado por Windows Explorer
-.DS_Store                    # Generado por macOS
-cookies.json                 # Para archivos de cookies (si usas requests o similar)
+*.log                        
+*.bak                       
+*.tmp                        
+Thumbs.db                    
+.DS_Store                    
+cookies.json                 
 
 # === Archivos relacionados con MongoDB ===
-*.json                       # Dumps JSON de MongoDB
-*.bson                       # Archivos BSON (MongoDB Binario)
-mongo-dump/                  # Directorio para volcado de bases de datos (dumps)
-mongo-data/                  # Archivos de datos temporales de MongoDB
+*.json                      
+*.bson                      
+mongo-dump/               
+mongo-data/                 
 
 # === Logs especiales (Frameworks, servidores, etc.) ===
-*.uvicorn                    # Logs del servidor uvicorn (si los habilitas manualmente)
-celerybeat-schedule          # Archivo generado por celery para registro
-*.pid                        # Archivos de proceso (para configuraciones manuales)
+*.uvicorn              
+celerybeat-schedule        
+*.pid                      
