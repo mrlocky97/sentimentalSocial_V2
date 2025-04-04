@@ -18,7 +18,7 @@ dist/
 setup.py  # Si no necesitas incluir el script de instalación en el repositorio
 
 # Entornos virtuales de Python
-venv/
+#venv/
 env/
 
 # Otros archivos temporales o específicos del sistema operativo
