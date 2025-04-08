@@ -8,6 +8,7 @@ load_dotenv()
 class Settings(BaseSettings):
     MONGODB_URL: str = os.getenv('MONGODB_URL')
     MONGODB_NAME: str = os.getenv('MONGODB_NAME')
+    REDIS_URL: str = os.getenv('REDIS_URL')
 
     model_config = SettingsConfigDict(
         env_file=".env",

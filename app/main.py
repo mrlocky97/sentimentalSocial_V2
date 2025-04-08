@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI
 from beanie import init_beanie
 from app.database import connect_db, close_db
@@ -9,6 +10,15 @@ app = FastAPI(title="Social Sentiment Analysis API")
 
 app.include_router(auth.router)
 app.include_router(tweet_scraper.router, prefix="/tweets", tags=["tweets"])
+
+# Configuración de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+    ]
+)
 
 load_dotenv()#Cargar variables de entorno desde el archivo .env
 

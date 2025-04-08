@@ -1,22 +1,31 @@
 from fastapi import APIRouter, HTTPException, Depends
+from app.core.dependencies import get_current_user
 from app.services import tweet_scraper
 from app.database import get_db
 from pymongo.database import Database
 
+from app.workers.celery_app import process_tweet_analysis
+
 router = APIRouter()
 
 """
-Endpoint que recibe un parámetro 'query' (por ejemplo, '#JustDoIt') y opcionalmente 'min_tweets' para indicar el número mínimo de tweets a recolectar.
-Realiza el scraping y, opcionalmente, inserta los datos en la colección 'tweets' de MongoDB.
+Este endpoint protege la operación y solo permite acceso a usuarios autenticados.
+Llama a la tarea de Celery para procesar de forma asíncrona:
+    - Scraping de tweets.
+    - Análisis de sentimientos.
+    - Inserción en MongoDB.
+Retorna el task_id para consultar el estado del proceso.
 """
 @router.get("/scrape-tweets", summary="Scrapea tweets y almacena los resultados")
-async def scrape_tweets_endpoint(query: str, min_tweets: int = 500, db: Database = Depends(get_db)):
+async def scrape_tweets_endpoint(
+    query: str, 
+    min_tweets: int = 500, 
+    db: Database = Depends(get_db),
+    _: str = Depends(get_current_user) # Dependencia para obtener el usuario autenticado, ignora el valor pero ejecuta la validacion
+    ):
     try:
-        tweets_data = await tweet_scraper.scrape_tweets(query, min_tweets)
-        # Insertar en MongoDB (si se desea almacenar)
-        collection = db.get_collection("tweets")
-        if tweets_data:
-            collection.insert_many(tweets_data)
-        return {"status": "success", "data": tweets_data}
+        # Desencadena la tarea asíncrona con Celery
+        task = process_tweet_analysis.delay(query, min_tweets)
+        return {"status": "processing", "task_id": task.id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
