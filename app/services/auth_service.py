@@ -35,16 +35,15 @@ class AuthService:
         return user
     
     # Método para autenticar un usuario
-    async def authenticate_user(self, email: str, password: str) -> UserDB:
-        user = await self.db.users.find_one(UserDB.email == email)
-        if not user:# si el usuario no existe
-            raise HTTPException(status_code=401, detail="Invalid user does not exist")
-        if not self.verify_password(password, user.password_hash): # si la contraseña no coincide
+    async def authenticate_user(self, email: str, password: str) -> dict:
+        user = await self.db.users.find_one({"email": email})
+        if not user:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        # Generamos el token JWT incluyendo el email o id del usuario
+        if not self.verify_password(password, user["password_hash"]):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
         token = create_access_token({"sub": user["email"]})
         return {"access_token": token, "token_type": "bearer"}
-    
+
     @staticmethod
     def dtoUserResponse(user: UserDB) -> UserResponse:
         return UserResponse(
