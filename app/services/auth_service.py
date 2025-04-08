@@ -1,6 +1,7 @@
 from passlib.context import CryptContext
 from pymongo.database import Database
 from fastapi import HTTPException
+from app.core.jwt_utils import create_access_token
 from app.models.user import UserDB, UserCreate, UserResponse, UserBase
 
 pwd_context = CryptContext(schemes=["bcrypt"], bcrypt__rounds=12, deprecated="auto")
@@ -40,7 +41,9 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Invalid user does not exist")
         if not self.verify_password(password, user.password_hash): # si la contraseña no coincide
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        return UserDB(**user)
+        # Generamos el token JWT incluyendo el email o id del usuario
+        token = create_access_token({"sub": user["email"]})
+        return {"access_token": token, "token_type": "bearer"}
     
     @staticmethod
     def dtoUserResponse(user: UserDB) -> UserResponse:

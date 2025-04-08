@@ -30,16 +30,19 @@ Asegúrate de cumplir con los siguientes requisitos antes de instalar el proyect
 Sigue estos pasos para instalar y configurar este proyecto en tu máquina local:
 
 ### 1. Clona este repositorio
+
 ```bash
 git clone https://github.com/tu_usuario/sentimentalSocial_V2.git
 ```
 
 ### 2. Navega al directorio del proyecto
+
 ```bash
 cd sentimentalSocial_V2
 ```
 
 ### 3. Crea un entorno virtual (opcional, pero recomendado)
+
 ```bash
 python -m venv venv
 ```
@@ -55,12 +58,15 @@ python -m venv venv
     ```
 
 ### 4. Instala las dependencias necesarias
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 5. Configura las variables de entorno
+
 Crea un archivo `.env` en el directorio principal basado en las configuraciones necesarias de la aplicación. Ejemplo:
+
 ```env
 MONGO_URI=mongodb://localhost:27017/mi_base_de_datos
 SECRET_KEY=mi_llave_secreta
@@ -73,33 +79,38 @@ SECRET_KEY=mi_llave_secreta
 ## Uso
 
 ### 1. Inicia el servidor
+
 Ejecuta el siguiente comando en tu terminal:
+
 ```bash
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 ### 2. Accede a la documentación interactiva
+
 Una vez que el servidor esté ejecutándose, puedes explorar la documentación API en los siguientes enlaces:
+
 - **Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
 **Nota**: Por defecto, el servidor se ejecutará en `http://127.0.0.1:8000`. Si necesitas cambiar el puerto, usa el parámetro `--port` con `uvicorn`, por ejemplo:
+
 ```bash
-uvicorn main:app --reload --port 8080
+uvicorn app.main:app --reload --port 8080
 ```
 
 ---
 
 ## Estructura del proyecto
 
-Este proyecto sigue una estructura modular para garantizar la escalabilidad y facilidad de mantenimiento.
----
+## Este proyecto sigue una estructura modular para garantizar la escalabilidad y facilidad de mantenimiento.
 
 ## Contribuciones
 
 ¡Las contribuciones son bienvenidas! Puedes ayudar mejorando el código, añadiendo pruebas o simplemente reportando bugs.
 
 ### Cómo contribuir:
+
 1. Crea un fork del repositorio.
 2. Haz tus cambios en una nueva rama:
    ```bash
@@ -113,13 +124,17 @@ Este proyecto sigue una estructura modular para garantizar la escalabilidad y fa
 ## FAQ (Preguntas frecuentes)
 
 ### 1. **¿Qué hacer si aparece un error al conectarse a MongoDB?**
+
 Asegúrate de que el URI de conexión configurado en tu archivo `.env` sea correcto. Por ejemplo:
+
 ```env
 MONGO_URI=mongodb://localhost:27017/mi_base_de_datos
 ```
 
 ### 2. **Error: `ModuleNotFoundError` al ejecutar `uvicorn`.**
+
 Esto significa que no has instalado correctamente las dependencias. Asegúrate de ejecutar:
+
 ```bash
 pip install -r requirements.txt
 ```

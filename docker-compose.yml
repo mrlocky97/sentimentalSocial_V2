@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis_cache
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:
+        driver: local
+        driver_opts:
+          type: none
+          device: ./redis_data
+          o: bind
+    restart: always
+    networks:
+      - backend
+
+  fastapi:
+    build: .
+    container_name: fastapi_app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./:/app
+    environment:
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  celery_worker:
+    build: .
+    container_name: celery_worker
+    command: celery -A app.workers.celery_app worker --pool=solo --loglevel=info
+    volumes:
+      - ./:/app
+    environment:
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+volumes:
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./redis_data
+      o: bind
+
+networks:
+  backend:
+    driver: bridge
