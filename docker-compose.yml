@@ -1,19 +1,16 @@
-version: "3.8"
-
 services:
   redis:
     image: redis:7.0-alpine
     container_name: redis_cache
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "6379:6379"
     volumes:
-      - redis_data:
-        driver: local
-        driver_opts:
-          type: none
-          device: ./redis_data
-          o: bind
-    restart: always
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - backend
 
@@ -24,9 +21,12 @@ services:
     volumes:
       - ./:/app
     environment:
-      - REDIS_URL=${REDIS_URL}
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
     networks:
       - backend
 
@@ -37,19 +37,15 @@ services:
     volumes:
       - ./:/app
     environment:
-      - REDIS_URL=${REDIS_URL}
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - backend
 
 volumes:
   redis_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./redis_data
-      o: bind
 
 networks:
   backend:

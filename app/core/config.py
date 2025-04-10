@@ -1,17 +1,17 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
 from dotenv import load_dotenv
 
-# Cargar las variables del fichero .env
-load_dotenv()
-
 class Settings(BaseSettings):
-    MONGODB_URL: str = os.getenv('MONGODB_URL')
-    MONGODB_NAME: str = os.getenv('MONGODB_NAME')
-    REDIS_URL: str = os.getenv('REDIS_URL')
+    MONGODB_URL: str
+    MONGODB_NAME: str 
+    REDIS_URL: str
+    JWT_SECRET: str
+    JWT_ALGORITHM: str
+    JWT_EXPIRATION_MINUTES: int
 
     model_config = SettingsConfigDict(
         env_file=".env",
+        env_file_encoding="utf-8",
         extra='ignore'
     )
 

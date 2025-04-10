@@ -4,6 +4,7 @@
 # === Configuración específica de IDEs ===
 .vscode/
 .idea/
+redis_data/
 
 # === Archivos generados por Python ===
 **/__pycache__/

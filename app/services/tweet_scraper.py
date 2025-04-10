@@ -19,7 +19,7 @@ async def get_authenticated_client() -> Client:
     password:str = os.getenv('PASSWORD')
 
     try:
-        client.load_cookies('cookies.json')
+        client.load_cookies('cookies.json') #/app/cookies.json'
         # Realiza una petición de prueba para verificar que las cookies son válidas.
         # Usamos un query sencillo para evitar efectos secundarios.
         test_tweets = await client.search_tweet("test", product='Latest', count=1)
