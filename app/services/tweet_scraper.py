@@ -1,106 +1,113 @@
 import asyncio
-from datetime import datetime, timedelta
 import os
-from random import randint
-
+import random
+from datetime import datetime, timedelta
+from fake_useragent import UserAgent
 from twikit import Client, TooManyRequests
+import logging
 
-MINIMUM_TWEETS = 500  # Valor por defecto, pero se puede parametrizar
+logger = logging.getLogger(__name__)
+MIN_TWEETS_PER_BATCH = 10  # Reducido para evitar detección
+MAX_WAIT_SECONDS = 600     # 10 minutos máximo de espera
 
-"""
-Obtiene un cliente autenticado.
-Intenta cargar cookies previamente guardadas y valida la sesión.
-Si falla la validación, realiza login y guarda las nuevas cookies.
-"""
-async def get_authenticated_client() -> Client:
-    client = Client(language='en-US')
-    username:str = os.getenv('USERNAME')
-    email:str = os.getenv('EMAIL')
-    password:str = os.getenv('PASSWORD')
-
-    try:
-        client.load_cookies('cookies.json') #/app/cookies.json'
-        # Realiza una petición de prueba para verificar que las cookies son válidas.
-        # Usamos un query sencillo para evitar efectos secundarios.
-        test_tweets = await client.search_tweet("test", product='Latest', count=1)
-        # Si se llega aquí, se asume que la sesión es válida.
-        print(f'{datetime.now()} - Cookies válidas, sesión activa.')
-    except Exception as e:
-        print(f'{datetime.now()} - Cookies no válidas o error en validación: {e}')
-        # Se realiza el login y se guardan las nuevas cookies
-        await client.login(auth_info_1=username, auth_info_2=email, password=password)
-        client.save_cookies('cookies.json')
-        print(f'{datetime.now()} - Se ha realizado el login y se han guardado las nuevas cookies.')
-    return client
-
-"""
-Función asíncrona para obtener tweets.  
-Si 'tweets' es None, se realiza la búsqueda inicial,  
-en caso contrario, se espera un tiempo aleatorio y se obtiene el siguiente lote.
-"""
-async def get_tweets(client, tweets, query: str):
-    if tweets is None:
-        print(f'{datetime.now()} - Getting tweets...')
-        tweets = await client.search_tweet(
-            query,
-            product='Latest',  # Prioriza tweets recientes
-            count=80  # Máximo permitido por solicitud
+class TwitterScraper:
+    def __init__(self):
+        self.ua = UserAgent()
+        self.proxies = [
+            # Lista de proxies (ej: 'http://user:pass@ip:port')
+            # Rotar proxies premium aquí para producción
+        ]
+    
+    async def _get_client(self) -> Client:
+        """Crea cliente con configuración anti-detección"""
+        client = Client(
+            language='en-US',
+            headers={'User-Agent': self.ua.random},
+            proxies={'http': random.choice(self.proxies)} if self.proxies else None
         )
-    else:
-        wait_time = randint(3, 8)
-        print(f'{datetime.now()} - Getting next tweets after {wait_time} seconds...')
-        await asyncio.sleep(wait_time)  # Usamos asyncio.sleep para no bloquear
-        tweets = await tweets.next()
-    return tweets
+        
+        if os.path.exists('cookies.json'):
+            try:
+                client.load_cookies('cookies.json')
+                return client
+            except Exception as e:
+                logger.warning("Cookies corruptas: %s", str(e))
+        
+        await self._perform_login(client)
+        return client
 
-"""
-Realiza el scraping de tweets usando el hashtag o consulta dada.
-Ajusta las fechas de búsqueda y retorna una lista de diccionarios con los tweets.
-"""
-async def scrape_tweets(query: str, min_tweets: int = MINIMUM_TWEETS):
-    # Definir fechas para la búsqueda
-    end_date = datetime.now().strftime('%Y-%m-%d')
-    start_date = (datetime.now() - timedelta(days=17)).strftime('%Y-%m-%d')
-    # Se arma la query incluyendo filtros de idioma y fechas
-    search_query = f'{query} lang:en until:{end_date} since:{start_date}'
+    async def _perform_login(self, client: Client):
+        """Login con reintentos y delays de seguridad"""
+        credentials = {
+            'auth_info_1': os.getenv('TWITTER_USERNAME'),
+            'auth_info_2': os.getenv('TWITTER_EMAIL'),
+            'password': os.getenv('TWITTER_PASSWORD')
+        }
+        
+        for attempt in range(3):
+            try:
+                await client.login(**credentials)
+                client.save_cookies('cookies.json')
+                logger.info("Login exitoso (Intento %d/3)", attempt+1)
+                return
+            except Exception as e:
+                wait = 2 ** attempt * 60  # Backoff exponencial
+                logger.warning("Error en login: %s. Reintento en %ds", str(e), wait)
+                await asyncio.sleep(wait)
+        
+        raise RuntimeError("No se pudo autenticar en Twitter")
 
-    # Obtener el cliente autenticado, evitando logins innecesarios
-    client = await get_authenticated_client()
-
-    tweet_count = 0
-    tweets_iterator = None
-    tweets_list = []
-
-    while tweet_count < min_tweets:
-        try:
-            tweets_iterator = await get_tweets(client, tweets_iterator, search_query)
-            if not tweets_iterator:
-                print(f'{datetime.now()} - No more tweets found')
-                break
-
-            batch_size = len(tweets_iterator)
-            for tweet in tweets_iterator:
-                tweet_count += 1
-                tweet_data = {
-                    "number": tweet_count,
+    async def scrape_tweets(self, query: str, max_tweets: int) -> list:
+        """Scraping seguro con gestión avanzada de rate limits"""
+        client = await self._get_client()
+        search_query = f"{query} lang:en until:{datetime.now().strftime('%Y-%m-%d')} since:{(datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')}"
+        
+        tweets = []
+        cursor = None
+        retries = 0
+        
+        while len(tweets) < max_tweets:
+            try:
+                response = await client.search_tweet(
+                    search_query,
+                    product='Latest',
+                    count=MIN_TWEETS_PER_BATCH,
+                    cursor=cursor
+                )
+                
+                # Simula interacción humana
+                await asyncio.sleep(random.uniform(1, 5))
+                
+                batch = [{
+                    "id": tweet.id,
+                    "text": tweet.text,
                     "user": tweet.user.screen_name,
-                    "text": tweet.text
-                }
-                tweets_list.append(tweet_data)
-                if tweet_count >= min_tweets:
+                    "created_at": tweet.created_at
+                } for tweet in response]
+                
+                tweets.extend(batch)
+                logger.info("Lote obtenido: %d tweets", len(batch))
+                
+                if not response.has_next():
                     break
+                
+                cursor = response.next_cursor
+                retries = 0  # Resetear reintentos tras éxito
 
-            print(f'{datetime.now()} - Batch: {batch_size} | Total: {tweet_count}')
+            except TooManyRequests as e:
+                retries += 1
+                if retries > 3:
+                    logger.error("Bloqueo persistente. Abortando...")
+                    break
+                
+                wait_time = min(2 ** retries * 60, MAX_WAIT_SECONDS)
+                logger.warning("Rate limit detectado. Esperando %d segundos", wait_time)
+                await asyncio.sleep(wait_time)
 
-        except TooManyRequests as e:
-            rate_limit_reset = datetime.fromtimestamp(e.rate_limit_reset)
-            print(f'{datetime.now()} - Rate limit reached. Waiting until {rate_limit_reset}')
-            await asyncio.sleep(60)
-            continue
+            except Exception as e:
+                logger.error("Error crítico: %s", str(e), exc_info=True)
+                await asyncio.sleep(300)  # Espera larga ante errores inesperados
+                continue
 
-        except Exception as e:
-            print(f'{datetime.now()} - Error: {str(e)}')
-            break
-
-    print(f'{datetime.now()} - Done! Collected {tweet_count} tweets')
-    return tweets_list
+        logger.info("Scraping completado. Total: %d tweets", len(tweets))
+        return tweets[:max_tweets]  # Asegura no exceder el límite

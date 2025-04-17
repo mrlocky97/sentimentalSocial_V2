@@ -1,9 +1,12 @@
+import logging
 from passlib.context import CryptContext
+from beanie import PydanticObjectId
 from pymongo.database import Database
-from fastapi import HTTPException
+from fastapi import HTTPException, logger
 from app.core.jwt_utils import create_access_token
 from app.models.user import UserDB, UserCreate, UserResponse, UserBase
 
+logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], bcrypt__rounds=12, deprecated="auto")
 
 class AuthService:
@@ -36,12 +39,12 @@ class AuthService:
     
     # Método para autenticar un usuario
     async def authenticate_user(self, email: str, password: str) -> dict:
-        user = await self.db.users.find_one({"email": email})
+        user = await UserDB.find_one(UserDB.email == email)
         if not user:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        if not self.verify_password(password, user["password_hash"]):
+        if not self.verify_password(password, user.password_hash): 
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        token = create_access_token({"sub": user["email"]})
+        token = create_access_token({"sub": user.email}) ## Crea el token JWT
         return {"access_token": token, "token_type": "bearer"}
 
     @staticmethod

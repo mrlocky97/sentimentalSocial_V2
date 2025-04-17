@@ -1,20 +1,35 @@
+from enum import Enum
 from datetime import datetime
 from beanie import Document
-from pydantic import BaseModel, Field
-from enum import Enum
+from pydantic import Field, BaseModel
+from typing import Optional
+
+class TweetStatus(str, Enum):
+    PENDING = "pending"
+    ANALYZED = "analyzed"
 
 class SentimentLabel(str, Enum):
     POSITIVE = "positive"
     NEUTRAL = "neutral"
     NEGATIVE = "negative"
 
-class TweetAnalysis(Document):
-    query: str
+class TweetPending(Document):
     content: str
     user: str
-    sentiment_label: SentimentLabel
-    sentiment_score: float = Field(..., ge=-1, le=1)
+    raw_data: dict
+    status: TweetStatus = TweetStatus.PENDING
     created_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
-        name = "tweet_analysis"
+        name = "tweets_pending"
+
+class TweetAnalysis(Document):
+    original_tweet_id: str 
+    content: str
+    sentiment_label: SentimentLabel
+    sentiment_score: float = Field(..., ge=-1, le=1)
+    cleaned_content: str  # Texto procesado
+    analyzed_at: datetime = Field(default_factory=datetime.now)
+
+    class Settings:
+        name = "tweets_analysis"

@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 class Settings(BaseSettings):
     MONGODB_URL: str
     MONGODB_NAME: str 
-    REDIS_URL: str
     JWT_SECRET: str
     JWT_ALGORITHM: str
     JWT_EXPIRATION_MINUTES: int
