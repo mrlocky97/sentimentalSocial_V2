@@ -1,106 +1,110 @@
 import asyncio
-from datetime import datetime, timedelta
+import logging
 import os
+from datetime import datetime, timedelta
 from random import randint
 
 from twikit import Client, TooManyRequests
+from pymongo.errors import PyMongoError
+from app.models.tweet import TweetAnalysis, SentimentLabel
 
-MINIMUM_TWEETS = 500  # Valor por defecto, pero se puede parametrizar
+# Número mínimo de tweets por defecto
+MINIMUM_TWEETS = 500
 
-"""
-Obtiene un cliente autenticado.
-Intenta cargar cookies previamente guardadas y valida la sesión.
-Si falla la validación, realiza login y guarda las nuevas cookies.
-"""
 async def get_authenticated_client() -> Client:
+    """
+    Obtiene un cliente autenticado de X (antes Twitter).
+    Intenta cargar cookies existentes y validar sesión;
+    si fallan, hace login y guarda nuevas cookies.
+    """
     client = Client(language='en-US')
-    username:str = os.getenv('USERNAME')
-    email:str = os.getenv('EMAIL')
-    password:str = os.getenv('PASSWORD')
+    username = os.getenv('USERNAME')
+    email = os.getenv('EMAIL')
+    password = os.getenv('PASSWORD')
 
     try:
-        client.load_cookies('cookies.json') #/app/cookies.json'
-        # Realiza una petición de prueba para verificar que las cookies son válidas.
-        # Usamos un query sencillo para evitar efectos secundarios.
-        test_tweets = await client.search_tweet("test", product='Latest', count=1)
-        # Si se llega aquí, se asume que la sesión es válida.
-        print(f'{datetime.now()} - Cookies válidas, sesión activa.')
-    except Exception as e:
-        print(f'{datetime.now()} - Cookies no válidas o error en validación: {e}')
-        # Se realiza el login y se guardan las nuevas cookies
+        client.load_cookies('cookies.json')
+        # Prueba sencilla para validar
+        await client.search_tweet("test", product='Latest', count=1)
+        logging.info("Cookies válidas: sesión activa.")
+    except Exception:
         await client.login(auth_info_1=username, auth_info_2=email, password=password)
         client.save_cookies('cookies.json')
-        print(f'{datetime.now()} - Se ha realizado el login y se han guardado las nuevas cookies.')
+        logging.info("Login realizado y cookies guardadas.")
+
     return client
 
-"""
-Función asíncrona para obtener tweets.  
-Si 'tweets' es None, se realiza la búsqueda inicial,  
-en caso contrario, se espera un tiempo aleatorio y se obtiene el siguiente lote.
-"""
-async def get_tweets(client, tweets, query: str):
-    if tweets is None:
-        print(f'{datetime.now()} - Getting tweets...')
-        tweets = await client.search_tweet(
-            query,
-            product='Latest',  # Prioriza tweets recientes
-            count=80  # Máximo permitido por solicitud
-        )
+async def get_tweets_page(client: Client, iterator, query: str):
+    """
+    Obtiene un lote de tweets según iterator:
+    - Si iterator es None, hace la búsqueda inicial.
+    - En caso contrario, espera y pide la siguiente página.
+    """
+    if iterator is None:
+        logging.info(f"{datetime.now()} - Solicitud inicial de tweets...")
+        return await client.search_tweet(query, product='Latest', count=80)
     else:
-        wait_time = randint(3, 8)
-        print(f'{datetime.now()} - Getting next tweets after {wait_time} seconds...')
-        await asyncio.sleep(wait_time)  # Usamos asyncio.sleep para no bloquear
-        tweets = await tweets.next()
-    return tweets
+        delay = randint(3, 8)
+        logging.info(f"{datetime.now()} - Esperando {delay}s antes de siguiente página...")
+        await asyncio.sleep(delay)
+        return await iterator.next()
 
-"""
-Realiza el scraping de tweets usando el hashtag o consulta dada.
-Ajusta las fechas de búsqueda y retorna una lista de diccionarios con los tweets.
-"""
 async def scrape_tweets(query: str, min_tweets: int = MINIMUM_TWEETS):
-    # Definir fechas para la búsqueda
+    """
+    Scrapea tweets basados en la query y los guarda en MongoDB
+    con estado neutral de sentimiento (score=0.0).
+    Devuelve lista de dicts con número, usuario y texto.
+    """
+    # Definir rango de fechas
     end_date = datetime.now().strftime('%Y-%m-%d')
     start_date = (datetime.now() - timedelta(days=17)).strftime('%Y-%m-%d')
-    # Se arma la query incluyendo filtros de idioma y fechas
     search_query = f'{query} lang:en until:{end_date} since:{start_date}'
 
-    # Obtener el cliente autenticado, evitando logins innecesarios
     client = await get_authenticated_client()
-
+    iterator = None
     tweet_count = 0
-    tweets_iterator = None
-    tweets_list = []
+    results = []
 
     while tweet_count < min_tweets:
         try:
-            tweets_iterator = await get_tweets(client, tweets_iterator, search_query)
-            if not tweets_iterator:
-                print(f'{datetime.now()} - No more tweets found')
+            iterator = await get_tweets_page(client, iterator, search_query)
+            if not iterator:
+                logging.info(f"{datetime.now()} - No se encontraron más tweets.")
                 break
 
-            batch_size = len(tweets_iterator)
-            for tweet in tweets_iterator:
+            for tweet in iterator:
                 tweet_count += 1
-                tweet_data = {
+                # Guardar documento en MongoDB
+                doc = TweetAnalysis(
+                    query=query,
+                    content=tweet.text,
+                    user=tweet.user.screen_name,
+                    sentiment_label=SentimentLabel.NEUTRAL,
+                    sentiment_score=0.0
+                )
+                try:
+                    await doc.insert()
+                except PyMongoError as e:
+                    logging.error(f"Error insertando en DB: {e}")
+                    continue
+
+                results.append({
                     "number": tweet_count,
                     "user": tweet.user.screen_name,
                     "text": tweet.text
-                }
-                tweets_list.append(tweet_data)
+                })
+
                 if tweet_count >= min_tweets:
                     break
 
-            print(f'{datetime.now()} - Batch: {batch_size} | Total: {tweet_count}')
-
         except TooManyRequests as e:
-            rate_limit_reset = datetime.fromtimestamp(e.rate_limit_reset)
-            print(f'{datetime.now()} - Rate limit reached. Waiting until {rate_limit_reset}')
+            reset = datetime.fromtimestamp(e.rate_limit_reset)
+            logging.warning(f"Rate limit alcanzado. Pausando hasta {reset}...")
             await asyncio.sleep(60)
             continue
-
         except Exception as e:
-            print(f'{datetime.now()} - Error: {str(e)}')
+            logging.error(f"Error inesperado durante scraping: {e}")
             break
 
-    print(f'{datetime.now()} - Done! Collected {tweet_count} tweets')
-    return tweets_list
+    logging.info(f"{datetime.now()} - Scraping completado: {tweet_count} tweets.")
+    return results

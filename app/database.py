@@ -2,6 +2,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.config import settings
 from typing import Optional
 
+from app.models.tweet import TweetAnalysis
+
 client: Optional[AsyncIOMotorClient] = None
 
 async def connect_db():
@@ -20,3 +22,6 @@ async def close_db():
 
 def get_db():
     return client.get_database(settings.MONGODB_NAME) if client else None
+
+async def create_indexes():
+    pass

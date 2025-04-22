@@ -1,7 +1,8 @@
 from datetime import datetime
-from beanie import Document
+from beanie import Document, PydanticObjectId
 from pydantic import BaseModel, Field
 from enum import Enum
+from pymongo import IndexModel, DESCENDING
 
 class SentimentLabel(str, Enum):
     POSITIVE = "positive"
@@ -18,3 +19,15 @@ class TweetAnalysis(Document):
 
     class Settings:
         name = "tweet_analysis"
+        indexes = [
+            IndexModel([("query", DESCENDING)]),
+            IndexModel([("sentiment_label", DESCENDING)]),
+            IndexModel([("created_at", DESCENDING)]),
+            IndexModel([("content", "text")], weights={"content": 10})
+        ]
+
+class PaginatedResponse(BaseModel):
+    total: int
+    page: int
+    limit: int
+    items: list[TweetAnalysis]
