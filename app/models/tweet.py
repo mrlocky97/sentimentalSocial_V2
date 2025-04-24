@@ -14,7 +14,8 @@ class TweetAnalysis(Document):
     content: str
     user: str
     sentiment_label: SentimentLabel
-    sentiment_score: float = Field(..., ge=-1, le=1)
+    sentiment_score: float = Field(..., ge=-1, le=1) ## Score entre -1 y 1
+    processed: bool = Field(default=False)      
     created_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:

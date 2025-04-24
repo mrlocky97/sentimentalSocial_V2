@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.models.tweet import TweetAnalysis
-from app.database import connect_db, close_db, create_indexes
+from app.database import connect_db, close_db
 from app.models.user import UserDB
 from app.routes import auth, tweet_scraper
 from dotenv import load_dotenv

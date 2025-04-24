@@ -80,7 +80,8 @@ async def scrape_tweets(query: str, min_tweets: int = MINIMUM_TWEETS):
                     content=tweet.text,
                     user=tweet.user.screen_name,
                     sentiment_label=SentimentLabel.NEUTRAL,
-                    sentiment_score=0.0
+                    sentiment_score=0.0,
+                    processed=False
                 )
                 try:
                     await doc.insert()

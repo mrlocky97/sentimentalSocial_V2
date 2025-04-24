@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
+from typing import List
 
-from app.models.tweet import PaginatedResponse, TweetAnalysis
+from app.models.tweet import PaginatedResponse, TweetAnalysis, SentimentLabel
 from app.core.dependencies import get_current_user
 from app.services import tweet_scraper
 from app.database import get_db
@@ -47,3 +48,18 @@ async def search_tweets(
         }
     except PyMongoError as e:
         raise HTTPException(500, detail=f"Database error: {str(e)}")
+    
+@router.get(
+    "/unprocessed",
+    summary="Obtiene tweets pendientes de análisis",
+    response_model=List[TweetAnalysis]
+)
+async def get_unprocessed_tweets(
+    db: Database = Depends(get_db),
+    _: str = Depends(get_current_user)
+):
+    try:
+        tweets = await TweetAnalysis.find({"processed": False}).to_list()
+        return tweets
+    except PyMongoError as e:
+        raise HTTPException(status_code=500, detail=f"DB error: {e}")
