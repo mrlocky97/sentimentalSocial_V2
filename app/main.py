@@ -7,15 +7,14 @@ from fastapi.responses import JSONResponse
 from app.models.tweet import TweetAnalysis
 from app.database import connect_db, close_db
 from app.models.user import UserDB
-from app.routes import auth, tweet_scraper
-from dotenv import load_dotenv
-from app.core.config import settings
+from app.routes import auth, sentiment_analysis, tweet_scraper
 from pymongo.errors import PyMongoError
 
 app = FastAPI(title="Social Sentiment Analysis API")
 
 app.include_router(auth.router)
 app.include_router(tweet_scraper.router, prefix="/tweets", tags=["tweets"])
+app.include_router(sentiment_analysis.router)
 
 # Configuración de logging
 logging.basicConfig(

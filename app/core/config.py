@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from dotenv import load_dotenv
+from app.services.nlp_service import NLPService
 
 class Settings(BaseSettings):
     MONGODB_URL: str
@@ -15,3 +15,6 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
+
+def get_nlp_service() -> NLPService:
+    return NLPService()
