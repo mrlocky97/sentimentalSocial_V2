@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from app.core.dependencies import get_auth_service
+from app.core.dependencies import get_auth_service, require_admin, require_readonly_or_admin
 from app.models.user import UserCreate, UserDB, UserResponse
 from app.services.auth_service import AuthService
 
@@ -54,3 +54,11 @@ async def login(
             status_code=500,
             detail=f"Internal server error: {str(e)}"
         )
+    
+@router.post("/admin-only", dependencies=[Depends(require_admin)])
+async def admin_action():
+    return {"msg": "Solo admins pueden ver esto"}
+
+@router.get("/read-data", dependencies=[Depends(require_readonly_or_admin)])
+async def read_action():
+    return {"msg": "Admins y usuarios de solo lectura pueden ver esto"}

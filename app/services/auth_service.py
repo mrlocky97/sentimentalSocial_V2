@@ -2,7 +2,7 @@ from passlib.context import CryptContext
 from pymongo.database import Database
 from fastapi import HTTPException
 from app.core.jwt_utils import create_access_token
-from app.models.user import UserDB, UserCreate, UserResponse, UserBase
+from app.models.user import UserDB, UserCreate, UserResponse, UserBase, UserRole  
 
 pwd_context = CryptContext(schemes=["bcrypt"], bcrypt__rounds=12, deprecated="auto")
 
@@ -41,15 +41,16 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Invalid credentials")
         if not self.verify_password(password, user["password_hash"]):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        token = create_access_token({"sub": user["email"]})
+        token = create_access_token({"sub": user["email"], "role": user["role"]})
         return {"access_token": token, "token_type": "bearer"}
 
     @staticmethod
     def dtoUserResponse(user: UserDB) -> UserResponse:
         return UserResponse(
-            message="User created successfully", 
-            user=UserBase(
-                username=user.username,
-                email=user.email
+            message = "User created successfully", 
+            user = UserBase(
+                username = user.username,
+                email = user.email,
+                role = user.role
             )
         )

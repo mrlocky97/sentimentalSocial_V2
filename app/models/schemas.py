@@ -1,6 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from app.models.tweet import SentimentLabel
+from app.models.user import UserRole
+
+class UserBase(BaseModel):
+    username: str = Field(..., min_length=3)
+    email: EmailStr
+    role: UserRole
+class UserCreate(UserBase):
+    password: str = Field(..., min_length=8)
+
+class UserResponse(BaseModel):  
+    message: str
+    user: UserBase
 
 class TweetInput(BaseModel):
     content: str

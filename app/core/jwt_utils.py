@@ -1,6 +1,8 @@
-from fastapi import HTTPException
 import jwt
+
+from fastapi import HTTPException
 from datetime import datetime, timedelta
+
 from app.core.config import settings
 
 def create_access_token(data: dict) -> str:

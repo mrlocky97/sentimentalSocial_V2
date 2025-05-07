@@ -1,13 +1,20 @@
+from enum import Enum
 from datetime import datetime
 from typing import Optional
 from beanie import Document
 from pydantic import BaseModel, EmailStr, Field
 from pymongo import IndexModel
 
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    READONLY = "readonly"
+    USER = "user"
+
 class UserDB(Document):
     username: str = Field(..., min_length=3)
     email: EmailStr
     password_hash: str
+    role: UserRole = Field(default=UserRole.USER)
     is_active: bool = True
     email_verified: bool = False
     created_at: datetime = Field(default_factory=datetime.now)
