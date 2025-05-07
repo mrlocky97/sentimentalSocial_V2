@@ -1,9 +1,10 @@
 import asyncio
 import logging
 import os
+import re
+
 from datetime import datetime, timedelta
 from random import randint
-
 from twikit import Client, TooManyRequests
 from pymongo.errors import PyMongoError
 from app.models.tweet import TweetAnalysis, SentimentLabel
@@ -74,14 +75,16 @@ async def scrape_tweets(query: str, min_tweets: int = MINIMUM_TWEETS):
 
             for tweet in iterator:
                 tweet_count += 1
+                # Limpiar texto antes de guardar
+                cleaned = clean_text(tweet.text)
                 # Guardar documento en MongoDB
                 doc = TweetAnalysis(
-                    query=query,
-                    content=tweet.text,
-                    user=tweet.user.screen_name,
-                    sentiment_label=SentimentLabel.NEUTRAL,
-                    sentiment_score=0.0,
-                    processed=False
+                    query = query,
+                    content = cleaned,
+                    user = tweet.user.screen_name,
+                    sentiment_label = SentimentLabel.NEUTRAL,
+                    sentiment_score = 0.0,
+                    processed = False
                 )
                 try:
                     await doc.insert()
@@ -109,3 +112,16 @@ async def scrape_tweets(query: str, min_tweets: int = MINIMUM_TWEETS):
 
     logging.info(f"{datetime.now()} - Scraping completado: {tweet_count} tweets.")
     return results
+
+def clean_text(text: str) -> str:
+    """
+    Limpia el texto de tweets eliminando URLs, correos, símbolos extraños y ajustando espacios.
+    """
+    # Eliminar URLs
+    text = re.sub(r'http\S+|www\.\S+', '', text)
+    # Eliminar correos
+    text = re.sub(r'\S+@\S+', '', text)
+    # Eliminar todo excepto letras, números, signos básicos y espacios
+    text = re.sub(r'[^A-Za-z0-9ÁÉÍÓÚáéíóúÜüÑñ.,!\?\s]', '', text)
+    # Colapsar espacios múltiples
+    return re.sub(r'\s+', ' ', text).strip()

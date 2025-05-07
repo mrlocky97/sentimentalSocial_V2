@@ -4,26 +4,24 @@ from app.core.jwt_utils import decode_access_token
 from app.database import get_db
 from app.models.user import UserDB
 from app.services.auth_service import AuthService
+# Import the NLP service dependency provider
+from app.core.config import get_nlp_service
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-# Dependency to get the database object
+# Auth service injector
 def get_auth_service(db = Depends(get_db)):
     return AuthService(db)
 
+# Current user injector
 async def get_current_user(token: str = Depends(oauth2_scheme), db=Depends(get_db)):
-    # Decodificar el token para obtener la información del usuario
     payload = decode_access_token(token)
     if not payload or "sub" not in payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales de autenticación inválidas"
         )
-
-    # Obtener el identificador (en este caso, el email) del payload
-    email = payload["sub"]    
-    
-    # Realizar la búsqueda en la base de datos (utilizando Beanie, es asíncrono)
+    email = payload["sub"]
     user = await UserDB.find_one(UserDB.email == email)
     if not user:
         raise HTTPException(
