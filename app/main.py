@@ -1,8 +1,9 @@
 import logging
 from fastapi import FastAPI
-from beanie import init_beanie
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from beanie import init_beanie
 
 from app.models.tweet import TweetAnalysis
 from app.database import connect_db, close_db
@@ -11,6 +12,14 @@ from app.routes import auth, sentiment_analysis, tweet_scraper
 from pymongo.errors import PyMongoError
 
 app = FastAPI(title="Social Sentiment Analysis API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth.router)
 app.include_router(tweet_scraper.router, prefix="/tweets", tags=["tweets"])
