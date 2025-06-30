@@ -44,3 +44,8 @@ mongo-data/
 *.uvicorn              
 celerybeat-schedule        
 *.pid                      
+
+/results
+celerybeat.pid
+celerybeat.log
+celery.log
