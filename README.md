@@ -6,141 +6,141 @@
 
 ## Características
 
-- **Análisis de sentimiento**: La API detecta si el sentimiento de un texto es **positivo**, **negativo** o **neutral**, utilizando algoritmos avanzados de análisis.
-- **Documentación interactiva**: Descubre y prueba los endpoints fácilmente mediante la interfaz **Swagger UI** en `/docs` y **ReDoc** en `/redoc`.
-- **Arquitectura RESTful**: Perfecto para integraciones con aplicaciones web o clientes front-end.
-- **Escalabilidad y rendimiento**: Construida sobre **FastAPI**, con alto rendimiento y potencial para manejo de grandes volúmenes de datos.
-- **Soporte para MongoDB**: Almacén de datos eficiente, implementado mediante **Beanie ODM**.
+- **Análisis de sentimiento**: Detecta si el sentimiento de un texto es **positivo**, **negativo** o **neutral** con modelos avanzados de NLP.
+- **Documentación interactiva**: Prueba los endpoints con **Swagger UI** (`/docs`) y **ReDoc** (`/redoc`).
+- **Arquitectura RESTful**: Ideal para integraciones con aplicaciones web o móviles.
+- **Escalabilidad y rendimiento**: Basada en **FastAPI** y Beanie ODM sobre MongoDB.
+- **Soporte para MongoDB**: Almacenamiento eficiente usando **Beanie** y **Motor**.
+- **Autenticación JWT**: Manejo de usuarios y autenticación basada en roles.
+- **Notebooks de experimentación**: Incluye notebooks en Jupyter para entrenamiento y evaluación de modelos de sentimiento utilizando `transformers`, `scikit-learn`, etc.
 
 ---
 
 ## Requisitos previos
 
-Asegúrate de cumplir con los siguientes requisitos antes de instalar el proyecto:
-
 1. **Python 3.8 o superior**.
-2. Tener instalado `pip` para manejar paquetes.
-3. Tener configurada una base de datos MongoDB (puedes usar MongoDB Atlas o una instancia local).
-4. Archivo `.env` para las configuraciones del entorno (como conexión a MongoDB).
+2. Tener instalado `pip`.
+3. MongoDB (Atlas o local).
+4. Archivo `.env` en la raíz del proyecto con las variables necesarias.
+5. (Opcional) GPU y drivers CUDA para acelerar notebooks de entrenamiento.
 
 ---
 
 ## Instalación
 
-Sigue estos pasos para instalar y configurar este proyecto en tu máquina local:
-
 ### 1. Clona este repositorio
 
 ```bash
 git clone https://github.com/tu_usuario/sentimentalSocial_V2.git
-```
-
-### 2. Navega al directorio del proyecto
-
-```bash
 cd sentimentalSocial_V2
 ```
 
-### 3. Crea un entorno virtual (opcional, pero recomendado)
+### 2. (Opcional) Crea un entorno virtual
 
 ```bash
 python -m venv venv
+# Windows
+venv\Scripts\activate
+# Linux/macOS
+source venv/bin/activate
 ```
 
-- Activa el entorno virtual:
-  - En Windows:
-    ```bash
-    venv\Scripts\activate
-    ```
-  - En Linux/macOS:
-    ```bash
-    source venv/bin/activate
-    ```
-
-### 4. Instala las dependencias necesarias
+### 3. Instala las dependencias principales
 
 ```bash
 pip install -r requirements.txt
 ```
 
+### 4. (Opcional) Instala dependencias para notebooks
+
+Si deseas ejecutar los notebooks de entrenamiento y análisis, instala los paquetes extra:
+
+```bash
+pip install -r requirements-notebooks.txt
+```
+
 ### 5. Configura las variables de entorno
 
-Crea un archivo `.env` en el directorio principal basado en las configuraciones necesarias de la aplicación. Ejemplo:
+Crea un archivo `.env` con contenido similar a:
 
 ```env
 MONGO_URI=mongodb://localhost:27017/mi_base_de_datos
 SECRET_KEY=mi_llave_secreta
 ```
 
-> **Nota**: Asegúrate de personalizar el archivo `.env` con tus credenciales reales y configure el acceso a tu base de datos MongoDB.
-
 ---
 
 ## Uso
 
-### 1. Inicia el servidor
-
-Ejecuta el siguiente comando en tu terminal:
+### 1. Inicia el servidor API
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-### 2. Accede a la documentación interactiva
+- Accede a Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- Accede a ReDoc: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-Una vez que el servidor esté ejecutándose, puedes explorar la documentación API en los siguientes enlaces:
-
-- **Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-
-**Nota**: Por defecto, el servidor se ejecutará en `http://127.0.0.1:8000`. Si necesitas cambiar el puerto, usa el parámetro `--port` con `uvicorn`, por ejemplo:
+Para cambiar el puerto:
 
 ```bash
 uvicorn app.main:app --reload --port 8080
+```
+
+### 2. Ejecuta los notebooks
+
+Abre Jupyter Lab o Jupyter Notebook desde la raíz del proyecto:
+
+```bash
+jupyter lab
+# o
+jupyter notebook
 ```
 
 ---
 
 ## Estructura del proyecto
 
-## Este proyecto sigue una estructura modular para garantizar la escalabilidad y facilidad de mantenimiento.
-
-## Contribuciones
-
-¡Las contribuciones son bienvenidas! Puedes ayudar mejorando el código, añadiendo pruebas o simplemente reportando bugs.
-
-### Cómo contribuir:
-
-1. Crea un fork del repositorio.
-2. Haz tus cambios en una nueva rama:
-   ```bash
-   git checkout -b mi-nueva-rama
-   ```
-3. Asegúrate de que tu código pase las pruebas (usa `pytest`).
-4. Abre un pull request describiendo tus cambios.
+- `app/`: Código fuente de la API (FastAPI)
+- `notebooks/`: Notebooks de experimentación y entrenamiento de modelos
+- `requirements.txt`: Dependencias principales
+- `requirements-notebooks.txt`: Extras para notebooks y experimentación
+- `.env`: Variables de entorno (no versionar)
+- `Dockerfile`: Soporte para despliegue en contenedores
 
 ---
 
-## FAQ (Preguntas frecuentes)
+## Contribuciones
 
-### 1. **¿Qué hacer si aparece un error al conectarse a MongoDB?**
+¡Las contribuciones son bienvenidas! Puedes ayudar mejorando el código, añadiendo notebooks, pruebas o reportando bugs.
 
-Asegúrate de que el URI de conexión configurado en tu archivo `.env` sea correcto. Por ejemplo:
+1. Haz fork del repo.
+2. Crea una rama:  `git checkout -b mi-nueva-rama`
+3. Verifica que tu código pase las pruebas (`pytest`).
+4. Haz pull request con tu descripción.
 
+---
+
+## FAQ
+
+### 1. ¿Error al conectar a MongoDB?
+
+Verifica que el URI en `.env` sea correcto.
+Ejemplo:
 ```env
 MONGO_URI=mongodb://localhost:27017/mi_base_de_datos
 ```
 
-### 2. **Error: `ModuleNotFoundError` al ejecutar `uvicorn`.**
+### 2. `ModuleNotFoundError` al ejecutar la API o un notebook
 
-Esto significa que no has instalado correctamente las dependencias. Asegúrate de ejecutar:
-
+Instala dependencias:
 ```bash
 pip install -r requirements.txt
+pip install -r requirements-notebooks.txt  # si usas notebooks
 ```
 
 ---
 
 ## Licencia
 
-Este proyecto está bajo la licencia MIT. Consulta el archivo `LICENSE` para más información.
+MIT. Consulta `LICENSE` para más detalles.
