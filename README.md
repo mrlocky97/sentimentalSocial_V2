@@ -7,6 +7,7 @@
 ## Características
 
 - **Análisis de sentimiento**: Detecta si el sentimiento de un texto es **positivo**, **negativo** o **neutral** con modelos avanzados de NLP.
+- **Interfaz web con menú interactivo**: Navegación intuitiva con icono hamburguesa animado para acceder a las funcionalidades.
 - **Documentación interactiva**: Prueba los endpoints con **Swagger UI** (`/docs`) y **ReDoc** (`/redoc`).
 - **Arquitectura RESTful**: Ideal para integraciones con aplicaciones web o móviles.
 - **Escalabilidad y rendimiento**: Basada en **FastAPI** y Beanie ODM sobre MongoDB.
@@ -72,22 +73,25 @@ SECRET_KEY=mi_llave_secreta
 
 ## Uso
 
-### 1. Inicia el servidor API
+### 1. Interfaz Web
+
+La aplicación ahora incluye una interfaz web accesible desde la raíz:
 
 ```bash
+# Inicia el servidor API
 uvicorn app.main:app --reload
 ```
+
+- **Interfaz Principal**: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+- **Menú Interactivo**: Haz clic en el icono hamburguesa (☰) para desplegar el menú de navegación
+- **Animación**: El icono se transforma suavemente en una X (×) cuando el menú está abierto
+
+### 2. Documentación API
 
 - Accede a Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - Accede a ReDoc: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-Para cambiar el puerto:
-
-```bash
-uvicorn app.main:app --reload --port 8080
-```
-
-### 2. Ejecuta los notebooks
+### 3. Ejecuta los notebooks
 
 Abre Jupyter Lab o Jupyter Notebook desde la raíz del proyecto:
 
@@ -102,6 +106,8 @@ jupyter notebook
 ## Estructura del proyecto
 
 - `app/`: Código fuente de la API (FastAPI)
+- `static/`: Archivos estáticos (CSS, JavaScript)
+- `templates/`: Plantillas HTML para la interfaz web
 - `notebooks/`: Notebooks de experimentación y entrenamiento de modelos
 - `requirements.txt`: Dependencias principales
 - `requirements-notebooks.txt`: Extras para notebooks y experimentación

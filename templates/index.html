@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentimentalSocial V2</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header with menu toggle -->
+        <header class="header">
+            <div class="logo">
+                <h1>SentimentalSocial V2</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+        </header>
+
+        <!-- Navigation menu -->
+        <nav class="nav-menu" id="navMenu">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#sentiment" class="nav-link">Análisis de Sentimiento</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#tweets" class="nav-link">Scraping de Tweets</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#auth" class="nav-link">Autenticación</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#docs" class="nav-link">Documentación API</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <div class="content-section" id="sentiment">
+                <h2>Análisis de Sentimiento</h2>
+                <p>Utiliza nuestra API para analizar el sentimiento de publicaciones en redes sociales.</p>
+                <div class="api-info">
+                    <h3>Endpoint:</h3>
+                    <code>PUT /analysis/sentiment</code>
+                </div>
+            </div>
+
+            <div class="content-section" id="tweets">
+                <h2>Scraping de Tweets</h2>
+                <p>Extrae tweets y analiza su sentimiento de forma automática.</p>
+                <div class="api-info">
+                    <h3>Endpoint:</h3>
+                    <code>GET /tweets/</code>
+                </div>
+            </div>
+
+            <div class="content-section" id="auth">
+                <h2>Autenticación</h2>
+                <p>Sistema de autenticación JWT para usuarios y administradores.</p>
+                <div class="api-info">
+                    <h3>Endpoints:</h3>
+                    <code>POST /auth/login</code><br>
+                    <code>POST /auth/register</code>
+                </div>
+            </div>
+
+            <div class="content-section" id="docs">
+                <h2>Documentación</h2>
+                <p>Explora la documentación completa de la API.</p>
+                <div class="api-links">
+                    <a href="/docs" target="_blank" class="btn">Swagger UI</a>
+                    <a href="/redoc" target="_blank" class="btn">ReDoc</a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
