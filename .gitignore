@@ -43,9 +43,9 @@ mongo-data/
 # === Logs especiales (Frameworks, servidores, etc.) ===
 *.uvicorn              
 celerybeat-schedule        
-*.pid                      
-
-/results
+*.pid    
+                  
+results/
 celerybeat.pid
 celerybeat.log
 celery.log
